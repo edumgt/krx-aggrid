@@ -3,7 +3,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 
-output_path = Path(__file__).with_name("naver_homepage.png")
+output_path = Path(__file__).parents[1] / "naver_homepage.png"
 
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch()

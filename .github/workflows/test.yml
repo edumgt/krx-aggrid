@@ -29,7 +29,26 @@ jobs:
       - name: Sanity check
         run: |
           test -f README.md && echo "README.md OK"
-          test -f gh.md && echo "gh.md OK"
+          test -f docker-compose.yml && echo "docker-compose.yml OK"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r backend/requirements.txt
+
+      - name: Run unit tests
+        run: PYTHONPATH=backend python -m unittest discover -s backend/tests -v
+
+      - name: Validate Docker Compose
+        run: docker compose config --quiet
+
+      - name: Build containers
+        run: docker compose build
 
       - name: Generate test.md
         run: |
