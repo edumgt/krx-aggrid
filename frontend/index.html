@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KRX OHLCV Vector Lab</title>
+    <title>Market OHLCV Vector Lab</title>
     <link rel="stylesheet" href="/styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@36.1.0/dist/ag-grid-community.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
@@ -11,35 +11,290 @@
   <body>
     <div class="app-shell">
       <aside id="sidebar" class="sidebar" aria-label="주 메뉴">
-        <div class="brand"><span class="brand-mark">K</span><div><strong>Vector Lab</strong><small>KRX OHLCV Analytics</small></div><button id="close-menu" class="icon-button sidebar-close" aria-label="메뉴 닫기">×</button></div>
+        <div class="brand"><span class="brand-mark">V</span><div><strong>Vector Lab</strong><small>Yahoo Finance OHLCV</small></div><button id="close-menu" class="icon-button sidebar-close" aria-label="메뉴 닫기">×</button></div>
         <nav class="side-nav">
           <p>WORKSPACE</p>
-          <button class="nav-item active" data-page="dashboard"><span class="nav-icon">⌁</span><span><strong>분석 설정</strong><small>기간과 종목 선택</small></span></button>
+          <button class="nav-item active" data-page="concept"><span class="nav-icon">📖</span><span><strong>개념이해</strong><small>고차원 벡터 · 서브스페이스</small></span></button>
+          <button class="nav-item" data-page="dashboard"><span class="nav-icon">⌁</span><span><strong>분석 설정</strong><small>기간과 티커 선택</small></span></button>
           <button class="nav-item" data-page="visual"><span class="nav-icon">◉</span><span><strong>군집 지도</strong><small>2D · 3D 패턴</small></span><b id="visual-badge">-</b></button>
           <button class="nav-item" data-page="grid"><span class="nav-icon">▦</span><span><strong>데이터 탐색</strong><small>OHLCV · 10차원</small></span><b id="grid-badge">-</b></button>
         </nav>
         <div class="sidebar-flow">
           <p>ANALYSIS FLOW</p>
-          <ol><li class="done"><i>1</i><span>KRX 데이터 수집</span></li><li><i>2</i><span>OHLCV 정제</span></li><li><i>3</i><span>K-Means 군집</span></li><li><i>4</i><span>PCA 투영</span></li></ol>
+          <ol><li class="done"><i>1</i><span>Yahoo Finance 수집</span></li><li><i>2</i><span>OHLCV 정제</span></li><li><i>3</i><span>K-Means 군집</span></li><li><i>4</i><span>PCA 투영</span></li></ol>
         </div>
-        <div class="sidebar-foot"><span class="live-dot"></span><div><strong>KRX Sample API</strong><small>탐색적 분석 · 투자 참고용</small></div></div>
+        <div class="sidebar-foot"><span class="live-dot"></span><div><strong>Yahoo Finance API</strong><small>다중 티커 OHLCV 탐색</small></div></div>
       </aside>
       <button id="sidebar-backdrop" class="sidebar-backdrop" aria-label="메뉴 닫기"></button>
 
       <div class="workspace">
         <header class="topbar">
           <button id="open-menu" class="icon-button menu-button" aria-label="메뉴 열기">☰</button>
-          <div class="page-heading"><span id="page-kicker">SETUP</span><strong id="page-title">분석 설정</strong></div>
-          <p id="status" class="status" role="status">기간을 선택하고 분석을 실행하세요.</p>
+          <div class="page-heading"><span id="page-kicker">CONCEPT</span><strong id="page-title">개념이해</strong></div>
+          <p id="status" class="status" role="status">기간과 티커를 확인하고 분석을 실행하세요.</p>
         </header>
 
         <main class="stage">
-          <section class="page-panel active dashboard-page" data-page-panel="dashboard">
-            <div class="welcome-row"><div><p class="eyebrow">KRX DATA · VISUAL ANALYTICS</p><h1>시장의 하루를<br /><em>벡터로 펼쳐보세요.</em></h1><p>가격·변동성·거래 에너지를 10차원으로 정제하고 비슷한 시장 패턴을 군집으로 찾습니다.</p></div><div class="orb" aria-hidden="true"><span></span><i></i><b></b></div></div>
+          <!-- 1. 개념이해 (Concept Understanding) 페이지 -->
+          <section class="page-panel active concept-panel" data-page-panel="concept">
+            <div class="concept-container">
+              <header class="concept-hero">
+                <span class="concept-pill">THEORY & ARCHITECTURE</span>
+                <h1>고차원 벡터와 서브스페이스 분석<br /><em>README 개념 가이드</em></h1>
+                <p>주식 시장의 하루(OHLCV)를 고차원 공간의 점(Vector)으로 변환하고, 인간이 직관적으로 해석할 수 있는 2D/3D 부분공간(Subspace)으로 분해·투영하는 수학적 원리와 시스템 철학을 정리한 문서입니다.</p>
+                <div class="concept-actions">
+                  <button class="ghost concept-jump-btn" type="button" data-jump="#concept-sec1">1. 시스템 개요 & 파이프라인</button>
+                  <button class="ghost concept-jump-btn" type="button" data-jump="#concept-sec2">2. 10차원 벡터 공식</button>
+                  <button class="ghost concept-jump-btn" type="button" data-jump="#concept-sec3">3. 고차원과 차원의 저주</button>
+                  <button class="ghost concept-jump-btn" type="button" data-jump="#concept-sec4">4. 크기와 방향의 기하학</button>
+                  <button class="ghost concept-jump-btn" type="button" data-jump="#concept-sec5">5. 서브스페이스 그룹핑</button>
+                  <button class="quick-go-btn" type="button" data-go-page="dashboard">분석 설정 바로가기 →</button>
+                </div>
+              </header>
+
+              <!-- Section 1: 시스템 개요 & 파이프라인 -->
+              <article id="concept-sec1" class="concept-card">
+                <div class="concept-card-head">
+                  <span class="concept-num">01</span>
+                  <div>
+                    <h2>Market OHLCV Vector Lab 개요 & 파이프라인</h2>
+                    <small>순수 OHLCV 기반 무차원 비율 벡터화와 탐색적 군집 분석</small>
+                  </div>
+                </div>
+                <div class="concept-body">
+                  <p>기존 주식 분석은 단순히 전일 대비 종가가 얼마 올랐는지, 거래량이 몇 주 터졌는지만을 단편적으로 보았습니다. 하지만 시장의 하루는 <strong>시가(O), 고가(H), 저가(L), 종가(C), 거래량(V)</strong>이라는 5개의 다차원 변수가 상호작용하는 복합적인 기하학적 형태를 가집니다.</p>
+                  
+                  <div class="concept-callout info">
+                    <strong>💡 본 시스템의 핵심 설계 철학</strong>
+                    <p>원시 가격($1와 $1000)이나 절대 주식 수(1천주와 1억주)를 그대로 거리(Distance) 계산에 사용하면, 주가가 높은 대형주나 유동성이 큰 특정 종목이 군집 분석 전체를 왜곡합니다. 따라서 본 시스템은 <strong>순수 OHLCV로부터 계산 가능한 10차원 무차원·비율·모멘텀·변동성·거래 에너지 벡터</strong>로 정규화하여 모든 종목을 공평한 척도에서 비교합니다.</p>
+                  </div>
+
+                  <div class="flow-steps-grid">
+                    <div class="flow-step-box">
+                      <span class="step-num">Step 1</span>
+                      <strong>Yahoo Finance 수집</strong>
+                      <p>API 키 없이 국내외(005930.KS, AAPL 등) 다중 티커 일별 OHLCV 병렬 수집</p>
+                    </div>
+                    <div class="flow-step-box">
+                      <span class="step-num">Step 2</span>
+                      <strong>캔들 유효성 정제</strong>
+                      <p>양수 가격, 고가 ≥ max(시가,종가), 저가 ≤ min(시가,종가) 무결성 검증</p>
+                    </div>
+                    <div class="flow-step-box">
+                      <span class="step-num">Step 3</span>
+                      <strong>10차원 특성 생성</strong>
+                      <p>가격 모멘텀, 캔들 비율, 변동성, 거래 에너지의 10개 무차원 지표 도출</p>
+                    </div>
+                    <div class="flow-step-box">
+                      <span class="step-num">Step 4</span>
+                      <strong>1~99% 윈저라이징</strong>
+                      <p>이상치 왜곡 방지를 위해 특성별 상·하위 1% 절단 후 표준화(StandardScaler)</p>
+                    </div>
+                    <div class="flow-step-box">
+                      <span class="step-num">Step 5</span>
+                      <strong>K-Means & PCA 2D/3D</strong>
+                      <p>동일한 10차원 벡터를 K-Means로 군집화하고, PCA 주성분으로 2D/3D 지도에 투영</p>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Section 2: 10차원 벡터 공식 -->
+              <article id="concept-sec2" class="concept-card">
+                <div class="concept-card-head">
+                  <span class="concept-num">02</span>
+                  <div>
+                    <h2>10차원 벡터의 정의와 계산 공식</h2>
+                    <small>외형 크기가 아닌 순수한 '움직임의 비율과 형태'를 담아낸 10개 지표</small>
+                  </div>
+                </div>
+                <div class="concept-body">
+                  <div class="table-responsive">
+                    <table class="concept-table">
+                      <thead>
+                        <tr>
+                          <th>구분 (부분공간)</th>
+                          <th>특성 변수명</th>
+                          <th>수학적 계산식</th>
+                          <th>기하학적 의미 및 인간 직관</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td rowspan="3" class="group-cell"><strong>가격 모멘텀</strong><br><small>(3D Subspace)</small></td>
+                          <td><code>return_rate</code></td>
+                          <td>(Close - Close<sub>prev</sub>) / Close<sub>prev</sub></td>
+                          <td>전일 대비 하루 등락률 (공격적인 방향성)</td>
+                        </tr>
+                        <tr>
+                          <td><code>gap_rate</code></td>
+                          <td>(Open - Close<sub>prev</sub>) / Close<sub>prev</sub></td>
+                          <td>장 시작 시가 갭 (밤사이 시장의 기대치와 충격)</td>
+                        </tr>
+                        <tr>
+                          <td><code>momentum_5d</code></td>
+                          <td>(Close - Close<sub>5d</sub>) / Close<sub>5d</sub></td>
+                          <td>최근 5거래일 누적 모멘텀 (중기적 추세 강도)</td>
+                        </tr>
+                        <tr>
+                          <td rowspan="3" class="group-cell"><strong>캔들 형상 비율</strong><br><small>(3D Subspace)</small></td>
+                          <td><code>body_ratio</code></td>
+                          <td>(Close - Open) / (High - Low)</td>
+                          <td>고저 진폭 대비 몸통 크기 (-1: 꽉 찬 음봉, +1: 꽉 찬 양봉)</td>
+                        </tr>
+                        <tr>
+                          <td><code>clv</code></td>
+                          <td>(2Close - High - Low) / (High - Low)</td>
+                          <td>종가 위치 지표 (하루 고저 범위 중 종가가 어디 박혔는가, -1~+1)</td>
+                        </tr>
+                        <tr>
+                          <td><code>upper_shadow_ratio</code></td>
+                          <td>(High - max(Open, Close)) / (High - Low)</td>
+                          <td>윗꼬리 비율 (장중 상승 후 쏟아진 매도 저항 압력)</td>
+                        </tr>
+                        <tr>
+                          <td rowspan="2" class="group-cell"><strong>변동성</strong><br><small>(2D Subspace)</small></td>
+                          <td><code>range_rate</code></td>
+                          <td>(High - Low) / Close<sub>prev</sub></td>
+                          <td>전일 종가 대비 당일 진폭 (오늘 하루 링의 크기와 체급)</td>
+                        </tr>
+                        <tr>
+                          <td><code>volatility_5d</code></td>
+                          <td>StdDev(Return<sub>t-4..t</sub>)</td>
+                          <td>최근 5일간 수익률의 표준편차 (단기 흔들림의 크기)</td>
+                        </tr>
+                        <tr>
+                          <td rowspan="2" class="group-cell"><strong>거래 에너지</strong><br><small>(2D Subspace)</small></td>
+                          <td><code>volume_change</code></td>
+                          <td>(Volume - Volume<sub>prev</sub>) / Volume<sub>prev</sub></td>
+                          <td>전일 대비 거래량 급증/급감 비율</td>
+                        </tr>
+                        <tr>
+                          <td><code>volume_ratio_20d</code></td>
+                          <td>Volume / Mean(Volume<sub>20d</sub>)</td>
+                          <td>20일 평균 대비 거래량 배수 (평소 대비 관심 집중도)</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Section 3: 고차원과 차원의 저주 -->
+              <article id="concept-sec3" class="concept-card">
+                <div class="concept-card-head">
+                  <span class="concept-num">03</span>
+                  <div>
+                    <h2>10차원과 50차원의 차이 — 차원의 저주(Curse of Dimensionality)</h2>
+                    <small>왜 무작정 차원을 늘리지 않고 알짜배기 10차원으로 압축하는가?</small>
+                  </div>
+                </div>
+                <div class="concept-body">
+                  <div class="compare-grid">
+                    <div class="compare-box pros">
+                      <h3>알짜배기 10차원의 강점</h3>
+                      <ul>
+                        <li><strong>명확한 해석력:</strong> 10개 차원 각각이 금융 공학 및 캔들 차트 분석에서 검증된 명확한 직관적 의미를 가집니다.</li>
+                        <li><strong>거리 왜곡 방지:</strong> 차원이 최적화되어 유클리드 거리와 코사인 유사도가 점들 사이의 실제 패턴 유사도를 정확하게 보존합니다.</li>
+                        <li><strong>노이즈 배제:</strong> 무의미한 중복 지표(보조지표 수십 개)로 인한 과적합(Overfitting)을 원천 차단합니다.</li>
+                      </ul>
+                    </div>
+                    <div class="compare-box cons">
+                      <h3>50차원 이상의 과도한 확장 시 문제점</h3>
+                      <ul>
+                        <li><strong>차원의 저주:</strong> 공간이 기하급수적으로 팽창하여 모든 데이터 포인트 간의 거리가 거의 비슷해집니다 (거리 밀도 희소화).</li>
+                        <li><strong>군집 경계 붕괴:</strong> K-Means 군집 분석 시 의미 있는 그룹 구분이 흐려지고 노이즈가 중심점을 흔듭니다.</li>
+                        <li><strong>인간 직관 상실:</strong> 지표가 50개를 넘어가면 특정 군집이 왜 형성되었는지 근본 원인 분석(Root Cause Analysis)이 불가능합니다.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Section 4: 크기와 방향의 기하학 -->
+              <article id="concept-sec4" class="concept-card">
+                <div class="concept-card-head">
+                  <span class="concept-num">04</span>
+                  <div>
+                    <h2>데이터 벡터의 크기(Magnitude)와 방향(Direction)</h2>
+                    <small>물리적 화살표가 없는 10차원 데이터에서 "모양"을 본다는 것의 의미</small>
+                  </div>
+                </div>
+                <div class="concept-body">
+                  <p>물리학에서 벡터는 '화살표(크기와 방향)'이지만, 주식 데이터 벡터 <code>[0.02, 0.01, 0.8, ...]</code>는 숫자의 배열입니다. 하지만 수학적으로는 다음과 같이 명확히 분리됩니다:</p>
+                  
+                  <div class="two-col-cards">
+                    <div class="mini-card">
+                      <h4>1. 크기 (Magnitude / Scale)</h4>
+                      <p><strong>"이 사건(움직임)의 에너지가 얼마나 거대한가?"</strong></p>
+                      <small>원점으로부터의 유클리드 거리에 해당합니다. 당일 등락폭이 크고 거래량이 평소의 5배 터졌다면, 원점으로부터 멀리 떨어진 큰 벡터(충격이 큰 날)가 됩니다.</small>
+                    </div>
+                    <div class="mini-card">
+                      <h4>2. 방향 (Direction / Profile Shape)</h4>
+                      <p><strong>"이 움직임의 생김새(패턴의 종류)는 무엇인가?"</strong></p>
+                      <small>크기를 1로 정규화한 단위 벡터에 해당합니다. '갭 상승 후 고가 마감 양봉'인지, '장중 상승 후 윗꼬리를 달고 내려앉은 매도 저항'인지를 결정하는 <strong>순수한 패턴의 형태</strong>입니다.</small>
+                    </div>
+                  </div>
+
+                  <div class="concept-callout tip">
+                    <strong>💡 본 시스템의 K-Means & PCA 작동 방식</strong>
+                    <p>본 시스템에서는 표준화(StandardScaler)를 거쳐 모든 10개 차원의 분산을 1로 맞춘 뒤 군집화를 수행하므로, <strong>'방향성(패턴의 성격)'이 유사한 날들을 하나로 묶어</strong> C0(변동성 확대), C1(고가 마감), C2(하락 압력) 등의 패턴 이름을 자동 부여합니다.</p>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Section 5: 서브스페이스 그룹핑 -->
+              <article id="concept-sec5" class="concept-card">
+                <div class="concept-card-head">
+                  <span class="concept-num">05</span>
+                  <div>
+                    <h2>인간을 위한 2D/3D 서브스페이스(Subspace) 분석 전략</h2>
+                    <small>10차원의 복잡성을 3개의 직관적인 부분공간으로 쪼개어 이해하기</small>
+                  </div>
+                </div>
+                <div class="concept-body">
+                  <p>인간의 뇌는 4차원 이상의 공간을 상상할 수 없습니다. 따라서 10차원 전체를 3개의 의미 있는 2D/3D 부분공간으로 분해하여 관찰할 수 있습니다:</p>
+
+                  <div class="subspace-grid">
+                    <div class="subspace-card">
+                      <span class="sub-badge">그룹 1: 모멘텀 3D</span>
+                      <h4>가격 모멘텀 공간</h4>
+                      <p><code>[return_rate, gap_rate, momentum_5d]</code></p>
+                      <small>질문: <em>"오늘 가격이 얼마나 공격적으로 위/아래로 밀어붙였는가?"</em> (방향과 속도)</small>
+                    </div>
+                    <div class="subspace-card">
+                      <span class="sub-badge">그룹 2: 변동성 2D</span>
+                      <h4>가격 진폭 공간</h4>
+                      <p><code>[range_rate, volatility_5d]</code></p>
+                      <small>질문: <em>"오늘 시장의 링(진폭)과 흔들림이 얼마나 컸는가?"</em> (위험과 진동)</small>
+                    </div>
+                    <div class="subspace-card">
+                      <span class="sub-badge">그룹 3: 형상 & 에너지 3D</span>
+                      <h4>캔들 형상 & 거래 에너지</h4>
+                      <p><code>[body_ratio, clv, volume_ratio_20d]</code></p>
+                      <small>질문: <em>"이 움직임에 진짜 돈이 실렸는가, 아니면 속임수인가?"</em> (에너지의 순도)</small>
+                    </div>
+                  </div>
+
+                  <div class="bottom-cta-banner">
+                    <div>
+                      <h3>개념을 확인하셨다면 실제 데이터를 분석해보세요!</h3>
+                      <p>삼성전자(005930), 애플(AAPL), 테슬라(TSLA) 등 원하는 티커의 2D/3D 군집 지도와 원본 표를 즉시 확인할 수 있습니다.</p>
+                    </div>
+                    <button class="cta-primary-btn" type="button" data-go-page="dashboard">분석 설정으로 이동하기 →</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <!-- 2. 분석 설정 (Dashboard) 페이지 -->
+          <section class="page-panel dashboard-page" data-page-panel="dashboard">
+            <div class="welcome-row"><div><p class="eyebrow">MARKET DATA · VISUAL ANALYTICS</p><h1>시장의 하루를<br /><em>벡터로 펼쳐보세요.</em></h1><p>가격·변동성·거래 에너지를 10차원으로 정제하고 비슷한 시장 패턴을 군집으로 찾습니다.</p></div><div class="orb" aria-hidden="true"><span></span><i></i><b></b></div></div>
             <section class="query-panel" aria-label="분석 조건">
               <div class="field"><label for="from-date">시작일</label><input id="from-date" type="date" required /></div>
               <div class="field"><label for="to-date">종료일</label><input id="to-date" type="date" required /></div>
-              <div class="field symbol-field"><label for="symbols">종목코드 <small>선택, 쉼표 구분</small></label><input id="symbols" inputmode="numeric" placeholder="예: 005930, 000660" /></div>
+              <div class="field symbol-field"><label for="symbols">티커(심볼) <small>쉼표 구분</small></label><input id="symbols" value="005930" placeholder="예: 005930, AAPL, MSFT, NVDA" /></div>
               <div class="field cluster-field"><label for="cluster-count">군집 수</label><select id="cluster-count"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
               <button id="search-button" type="button"><span>분석 실행</span><b>→</b></button>
             </section>
@@ -52,6 +307,7 @@
             <div class="dashboard-actions"><button class="quick-link" data-go-page="visual"><span>군집 지도</span><strong>2D · 3D 패턴 보기</strong><b>↗</b></button><button class="quick-link" data-go-page="grid"><span>데이터 탐색</span><strong>원본과 파생 특성 보기</strong><b>↗</b></button></div>
           </section>
 
+          <!-- 3. 군집 지도 (Visual Map) 페이지 -->
           <section class="page-panel visual-panel" data-page-panel="visual">
             <div class="section-head"><div><p class="eyebrow">PATTERN MAP</p><h2>시장 패턴 군집 지도</h2></div><div class="segmented" aria-label="차원 선택"><button class="active" data-dimension="2">2D</button><button data-dimension="3">3D</button></div></div>
             <div id="cluster-profiles" class="cluster-profiles" aria-label="군집 프로필"><div class="panel-empty">분석을 실행하면 군집 프로필이 표시됩니다.</div></div>
@@ -59,9 +315,10 @@
             <p class="plot-help">점은 종목의 하루, 색은 유사한 10차원 패턴입니다. 점을 선택하면 데이터 표와 연결됩니다.</p>
           </section>
 
+          <!-- 4. 데이터 탐색 (Grid) 페이지 -->
           <section class="page-panel grid-panel" data-page-panel="grid" aria-label="정제 OHLCV 데이터 표">
             <div class="section-head grid-head"><div><p class="eyebrow">EXPLORE</p><h2>원본과 정제 특성</h2></div><div class="grid-actions"><div class="segmented" aria-label="표 열 선택"><button class="active" data-view="overview">요약</button><button data-view="ohlcv">OHLCV</button><button data-view="features">10차원</button></div><button id="clear-filter" class="ghost" type="button">필터 해제</button><button id="csv-button" class="ghost" type="button" disabled>CSV</button></div></div>
-            <div id="stock-grid" aria-label="KRX OHLCV 분석 데이터"></div>
+            <div id="stock-grid" aria-label="OHLCV 분석 데이터"></div>
           </section>
         </main>
       </div>

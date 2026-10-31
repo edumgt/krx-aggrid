@@ -5,10 +5,6 @@ services:
     env_file:
       - path: ./.env
         required: false
-      - path: ./.key
-        required: false
-    environment:
-      KRX_API_MODE: ${KRX_API_MODE:-sample}
     ports:
       - "8001:8000"
     healthcheck:

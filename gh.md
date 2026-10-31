@@ -36,14 +36,8 @@ gh repo create test1010 --public
 gh secret set vvv --body "1111" --repo edumgt/test1111
 ```
 
-## 6. Codespaces에서 사용할 KRX secret 생성
-```bash
-gh secret set KRX_KEY --user --app codespaces
-```
-
-등록 후 Codespace를 새로 만들거나 다시 시작하면 애플리케이션이 `KRX_KEY` 환경변수에서 값을 읽습니다.
-
-Codespaces secret의 값은 보안상 `gh secret`으로 다시 조회할 수 없습니다.
+## 6. Codespaces 환경 (참고)
+Yahoo Finance 파이프라인으로 전환되어 별도의 API 키나 Secret 설정이 필요하지 않습니다.
 
 ## 7. secret 목록 확인
 ```bash

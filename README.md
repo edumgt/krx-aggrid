@@ -1,29 +1,29 @@
-# KRX OHLCV Vector Lab
+# Market OHLCV Vector Lab
 
-KRX 유가증권 일별매매정보를 수집하고 OHLCV를 정제한 뒤, 사람이 이해하기 어려운 고차원 시장 패턴을 2D/3D 군집 지도로 보여주는 탐색적 분석 애플리케이션입니다. 아이디어와 분석 원칙은 [`merged.md`](./merged.md)의 고차원 벡터·부분공간·OHLCV 논의를 실제 동작하는 파이프라인으로 옮긴 것입니다.
+Yahoo Finance에서 다중 티커 일별 OHLCV를 수집하고 정제한 뒤, 사람이 이해하기 어려운 고차원 시장 패턴을 2D/3D 군집 지도로 보여주는 탐색적 분석 애플리케이션입니다. 아이디어와 분석 원칙은 아래의 고차원 벡터·부분공간·OHLCV 논의를 실제 동작하는 파이프라인으로 구현한 것입니다.
 
 > 이 프로젝트는 탐색적 데이터 분석 도구입니다. 군집 이름은 통계적 특성을 사람이 읽기 쉽게 요약한 것이며 투자 신호나 수익을 보장하지 않습니다.
 
 ## 주요 기능
 
-- KRX Data API에서 최대 366일의 KOSPI 일별 데이터를 제한된 동시성으로 수집
-- 숫자 문자열 형 변환, 중복 제거, 가격/거래량 유효성 검증으로 OHLCV 정제
-- 가격 수준과 거래량 단위가 거리를 지배하지 않도록 10개 비율·로그 특성 생성
-- 1~99 백분위 윈저라이징과 표준화 후 K-Means 군집화
-- PCA로 전체 10차원 정보를 2D/3D에 투영하고 Plotly로 회전·확대·선택
-- 군집별 사람 친화적 패턴 이름, 평균 수익률·고저폭·거래량 배수 요약
+- Yahoo Finance(`yfinance`)를 기반으로 별도의 API 키 없이 다중 티커의 일별 OHLCV 수집
+- 국내 주식(예: `005930.KS`) 및 해외 대표 종목(예: `AAPL`, `MSFT`, `NVDA`) 등 자유로운 티커 지원
+- 원시 가격·거래량 단위가 거리를 왜곡하지 않도록 순수 OHLCV 기반 10차원 무차원·비율 특성 생성
+- 1~99 백분위 윈저라이징과 표준화(StandardScaler) 후 K-Means 군집화
+- PCA(주성분 분석)로 10차원 전체 정보를 2D/3D에 투영하고 Plotly로 회전·확대·선택
+- 군집별 사람 친화적 패턴 이름, 평균 수익률·고저폭·거래량 배수 요약 프로필
 - AG Grid에서 요약/OHLCV/10차원 보기, 정렬, 필터, 페이지네이션, CSV 내보내기
-- 산점도 점·군집 카드와 그리드 필터 연동
+- 산점도 점·군집 카드와 그리드 필터 양방향 연동
 
 ## 분석 파이프라인
 
 ```mermaid
 flowchart LR
-    A[KRX 일별매매정보] --> B[숫자 형 변환과 중복 제거]
-    B --> C[OHLC 유효성 검사]
-    C --> D[종목별 10차원 특성]
+    A[Yahoo Finance 다중 티커 OHLCV] --> B[숫자 형 변환과 중복 제거]
+    B --> C[OHLC 캔들 유효성 검사]
+    C --> D[순수 OHLCV 10차원 특성]
     D --> E[1~99% 윈저라이징]
-    E --> F[표준화]
+    E --> F[표준화 StandardScaler]
     F --> G[K-Means 군집]
     F --> H[PCA 2D/3D 투영]
     G --> I[군집 프로필]
@@ -31,43 +31,44 @@ flowchart LR
     C --> K[AG Grid 원본/정제 표]
 ```
 
-### 10차원 벡터
+### 10차원 벡터 (순수 OHLCV 파생)
 
-| 부분공간 | 특성 | 의미 |
+| 부분공간 | 특성 | 계산 공식 및 의미 |
 |---|---|---|
-| 가격 방향 | `return_rate`, `gap_rate`, `body_ratio`, `clv` | 전일 대비 방향, 시가 갭, 캔들 몸통, 고저 범위 내 종가 위치 |
-| 변동성 | `range_rate`, `volatility_5d` | 당일 고저폭과 최근 5개 관측 수익률 변동성 |
-| 거래 에너지 | `volume_change`, `volume_ratio_20d` | 전일 및 이전 최대 20개 관측 평균 대비 거래량 |
-| 유동성 | `log_trading_value`, `turnover_rate` | 로그 거래대금과 상장주식수 대비 회전율 |
+| 가격 모멘텀 | `return_rate` | $(Close - Close_{prev}) / Close_{prev}$ (전일 대비 일일 등락률) |
+| 가격 모멘텀 | `gap_rate` | $(Open - Close_{prev}) / Close_{prev}$ (전일 종가 대비 시가 갭 비율) |
+| 가격 모멘텀 | `momentum_5d` | $(Close - Close_{5d}) / Close_{5d}$ (최근 5거래일 누적 모멘텀) |
+| 캔들 비율 | `body_ratio` | $(Close - Open) / (High - Low)$ (고저 진폭 대비 캔들 몸통 크기/방향, -1~+1) |
+| 캔들 비율 | `clv` | $(2Close - High - Low) / (High - Low)$ (종가 위치 지표 Close Location Value, -1~+1) |
+| 캔들 비율 | `upper_shadow_ratio` | $(High - \max(Open, Close)) / (High - Low)$ (윗꼬리 비율, 매도 저항 압력) |
+| 변동성 | `range_rate` | $(High - Low) / Close_{prev}$ (전일 종가 대비 당일 진폭 비율) |
+| 변동성 | `volatility_5d` | 최근 5개 관측 일일 수익률의 표준편차 (단기 변동성) |
+| 거래 에너지 | `volume_change` | $(Volume - Volume_{prev}) / Volume_{prev}$ (전일 대비 거래량 변화율) |
+| 거래 에너지 | `volume_ratio_20d` | $Volume / \text{Mean}(Volume_{20d})$ (최근 20일 평균 거래량 대비 당일 거래량 배수) |
 
-첫 관측일처럼 과거값이 없는 경우 수익률·갭·거래량 변화·변동성은 0, 거래량 배수는 1을 사용합니다. 이는 행을 임의 삭제하지 않으면서 초기 상태를 중립값으로 두기 위한 규칙입니다. 긴 기간을 선택할수록 이동 통계가 더 안정적입니다.
+첫 관측일처럼 과거값이 없는 경우 수익률·갭·거래량 변화·변동성은 0, 거래량 배수는 1을 기본값으로 사용합니다. 모든 10개 지표는 원시 가격($1 vs $1000)이나 절대 거래량(1천주 vs 1억주)에 종속되지 않는 상대적 비율/배수이므로 대형주와 중소형주가 동일한 스케일에서 유의미하게 군집화됩니다.
 
 ### 정제와 모델링 원칙
 
-1. 쉼표가 포함된 KRX 숫자 문자열을 유한한 숫자로 변환합니다.
-2. 종목코드+기준일 중복을 제거합니다.
-3. 가격은 양수, 거래량은 0 이상이어야 하며 `고가 ≥ max(시가, 종가)`, `저가 ≤ min(시가, 종가)`를 만족해야 합니다.
-4. 극단치가 중심과 거리를 과도하게 끌지 않도록 모델 입력만 특성별 1~99 백분위로 제한합니다. 그리드에는 실제 파생값을 보존합니다.
-5. 표준화한 동일 입력을 K-Means와 PCA에 사용합니다. PCA 설명력은 화면에서 PC1~PC3의 정보 보존 비율로 표시됩니다.
+1. 숫자 문자열을 안전하게 float로 변환하고 `(일자, 티커)` 중복을 제거합니다.
+2. 가격은 양수, 거래량은 0 이상이어야 하며 `고가 ≥ max(시가, 종가)`, `저가 ≤ min(시가, 종가)` 캔들 유효성을 검증합니다.
+3. 극단치가 거리 계산을 왜곡하지 않도록 모델 입력만 특성별 1~99 백분위로 윈저라이징합니다. 표에는 실제 파생값을 보존합니다.
+4. 동일한 표준화 벡터를 K-Means 군집과 PCA 투영에 사용하여 일관된 군집 영역을 시각화합니다.
 
 ## 실행
 
 ### Docker Compose (권장)
 
-```bash
-# 기존 .key 형식(권장)
-cp .key.example .key
-# .key의 KRX-KEY를 실제 발급 키로 변경
+별도의 API 키 발급이나 `.key` 파일 설정 없이 바로 실행할 수 있습니다.
 
-# 또는 환경변수 형식
-# cp .env.example .env
+```bash
 docker compose up --build -d
 ```
 
 | 주소 | 용도 |
 |---|---|
-| `http://localhost:8000` | Nginx가 제공하는 프런트엔드 |
-| `http://localhost:8000/health` | Nginx를 경유한 백엔드 상태 |
+| `http://localhost:8000` | Nginx가 제공하는 웹 애플리케이션 |
+| `http://localhost:8000/health` | 백엔드 헬스체크 (`data_source: yahoo_finance`) |
 | `http://localhost:8001/docs` | 백엔드 Swagger UI |
 
 ```bash
@@ -76,24 +77,13 @@ docker compose logs -f
 docker compose down
 ```
 
-Compose는 기존 루트 `.key`의 `KRX-KEY=...` 형식과 `.env`의 `KRX_KEY`/`KRX_AUTH_KEY` 형식을 모두 자동으로 읽어 백엔드 컨테이너에만 주입합니다. 두 파일은 Git에서 제외되며 키는 이미지나 프런트엔드에 포함되지 않습니다. `KRX_API_MODE=production`은 발급받은 운영 키, `sample`은 KRX 상세 페이지의 테스트 키에 사용합니다. 현재 Compose 기본값은 복원한 테스트 키에 맞춘 `sample`입니다.
-
 ### 로컬 백엔드 개발
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -r backend/requirements.txt
-export KRX_KEY='발급받은-키'
 uvicorn app.main:app --app-dir backend --reload --port 8001
-```
-
-최근 20거래일 이상을 선택하면 거래량 배수와 단기 변동성 해석이 더 유용합니다. 전체 시장은 점이 많으므로 특정 종목을 깊게 볼 때는 종목코드 입력란에 쉼표로 구분해 입력합니다.
-
-Codespaces secret을 쓰는 경우:
-
-```bash
-gh secret set KRX_KEY --user --app codespaces
 ```
 
 ## API
@@ -101,60 +91,50 @@ gh secret set KRX_KEY --user --app codespaces
 ### 원본 기간 조회
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/stocks/daily?from=2026-08-24&to=2026-08-28'
+curl 'http://127.0.0.1:8000/api/v1/stocks/daily?from=2024-01-01&to=2024-01-31&symbols=AAPL,MSFT,NVDA'
 ```
 
 ### 정제·군집 분석
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/stocks/analysis?from=2026-08-01&to=2026-08-31&clusters=5&symbols=005930,000660'
+curl 'http://127.0.0.1:8000/api/v1/stocks/analysis?from=2024-01-01&to=2024-01-31&clusters=5&symbols=AAPL,MSFT,NVDA,005930.KS'
 ```
 
 | 파라미터 | 설명 |
 |---|---|
-| `from`, `to` | `YYYYMMDD` 또는 `YYYY-MM-DD`, 최대 366일 |
+| `from`, `to` | `YYYY-MM-DD` 또는 `YYYYMMDD` 형식 |
 | `clusters` | 2~8, 기본 5. 레코드 수보다 크면 자동 축소 |
-| `symbols` | 선택 사항. 쉼표로 구분한 종목코드 |
+| `symbols` | 선택 사항. 쉼표로 구분한 티커 목록 (기본: 주요 테크 티커) |
 
-분석 응답의 `data`에는 원본 OHLCV, 10개 파생 특성, `cluster`, `cluster_label`, `pca_x/y/z`가 함께 들어갑니다. `analysis`에는 특성명, PCA 설명력, 군집 프로필과 전처리 설명이 포함됩니다.
+분석 응답의 `data`에는 원본 OHLCV, 10개 파생 특성, `cluster`, `cluster_label`, `pca_x/y/z`가 포함됩니다. `analysis`에는 특성명 목록, PCA 설명력 비율, 군집 프로필 요약이 들어갑니다.
 
 ## 저장소 구조
 
 ```text
 .
 ├── backend/
-│   ├── app/                 # FastAPI 진입점, KRX 클라이언트, 분석 서비스
-│   ├── tests/               # 외부 API를 호출하지 않는 단위 테스트
+│   ├── app/                 # FastAPI 진입점, Yahoo Finance 클라이언트, 분석 서비스
+│   ├── tests/               # 단위 테스트
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/                # HTML/CSS/JS 및 Nginx reverse proxy
-├── scripts/                 # 서비스와 무관한 보조 Python 스크립트
+├── scripts/                 # 보조 스크립트
 ├── docker-compose.yml       # FE/BE 빌드, 포트, 헬스체크
-├── .key.example             # 기존 KRX-KEY 설정 템플릿
-└── .env.example             # 환경변수 설정 템플릿
+└── .env.example             # 선택 환경변수 예시
 ```
-
-브라우저 요청은 `frontend` 컨테이너가 받고 `/api/*`와 `/health`만 내부 `backend:8000`으로 전달합니다. 백엔드는 프런트엔드 파일을 알지 못하며, 프런트엔드에는 KRX 키가 전달되지 않습니다.
 
 ## 테스트
 
 ```bash
 PYTHONPATH=backend python3 -m unittest discover -s backend/tests -v
-
-# 컨테이너 포함 통합 확인
-docker compose config --quiet
-docker compose up --build -d
-curl http://localhost:8000/health
 ```
-
-테스트는 인증 키 우선순위, 쉼표 숫자 변환, 잘못된 캔들 제외, 파생 특성, K-Means/PCA 결과 필드를 검증합니다. 외부 KRX 호출은 테스트에서 수행하지 않습니다.
 
 ## 기술 스택
 
 - FastAPI, Pydantic, Uvicorn
-- NumPy, scikit-learn (StandardScaler, K-Means, PCA)
+- yfinance, pandas, NumPy, scikit-learn (StandardScaler, K-Means, PCA)
 - AG Grid Community, Plotly.js, Vanilla JavaScript
-- KRX Data API
+- Nginx, Docker Compose
 
 
 ---
